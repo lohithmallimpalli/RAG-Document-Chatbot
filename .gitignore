@@ -1,0 +1,25 @@
+# Python Virtual Environment
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment Variables & Secrets
+.env
+
+# Vector Database (Local storage)
+chroma_db/
+test_chroma_db/
+
+# Uploaded documents directory (can keep sample or ignore user uploads)
+# documents/*
+# !documents/.gitkeep
+
+# Streamlit config / cache
+.streamlit/
+
+# OS-specific
+.DS_Store
+Thumbs.db

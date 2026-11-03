@@ -246,40 +246,70 @@ response = client.models.generate_content(
 
 ---
 
-## 14. RAG vs Without RAG Comparison
+## 14. RAG vs Without RAG Comparison (Compulsory Demonstration)
 
 A dedicated tab (**⚖️ RAG vs Without RAG Comparison**) allows side-by-side evaluation of the identical prompt on:
-1. **Without RAG (Direct Gemini)**: Answers using solely pre-trained parametric weights.
+1. **Without RAG (Direct Gemini)**: Answers using solely pre-trained parametric weights (no document context).
 2. **With RAG Pipeline (ChromaDB + Gemini)**: Answers strictly using retrieved document context with page citations.
 
-### Real Test Example (Lewis et al. NeurIPS 2020 Paper):
+### Real Test Example 1: Model Architectures (Lewis et al. NeurIPS 2020)
 - **Question**: *"What are the two formulations of RAG models introduced by Lewis et al., and how do they differ in how they marginalize over retrieved documents?"*
 - **Without RAG (Direct Gemini)**:
-  - Gives a generic or high-level description of retrieval-augmented generation. It cannot quote the exact equations, specific marginalization math, or exact page sections from the paper.
+  - Gives a generic or high-level summary of retrieval-augmented generation. It cannot quote the exact equations, the specific latent document marginalization, or exact page sections.
 - **With RAG Pipeline (ChromaDB + Gemini)**:
-  - Specifically details **RAG-Sequence** (which uses the same retrieved document to generate the complete sequence) and **RAG-Token** (which can draw from different documents for each generated token), citing **Page 3 and Page 4** of the research paper with exact mathematical grounding.
+  - Specifically details **RAG-Sequence** (which uses the same retrieved document to predict each target token across the complete sequence) and **RAG-Token** (which can draw from a different document for each target token and marginalizes per token), citing **Page 3 and Page 4** of the research paper with exact mathematical formulas.
+
+### Real Test Example 2: Specific Table Data (Table 4 Human Assessments)
+- **Question**: *"What are the human evaluation assessment percentages for the Jeopardy question generation task reported in Table 4?"*
+- **Without RAG (Direct Gemini)**:
+  - Hallucinates plausible numbers or admits it does not have access to Table 4 of this specific paper.
+- **With RAG Pipeline (ChromaDB + Gemini)**:
+  - Extracts the exact figures from **Page 8 (Chunk 17)**:
+    - BART better: **7.1%** (Factuality) / **16.8%** (Specificity)
+    - RAG better: **42.7%** (Factuality) / **37.4%** (Specificity)
+    - Both good: **11.7%** / **11.8%**
+    - Both poor: **17.7%** / **6.9%**
+    - No majority: **20.8%** / **20.1%**
+
+### Real Test Example 3: Out-of-Domain Strict Grounding Test
+- **Question**: *"What was Apple's total iPhone revenue in Q4 2024?"*
+- **Chatbot Behavior**:
+  - The vector retriever retrieves low-similarity passages (similarity $< 0.21$).
+  - Google Gemini complies with the strict system instruction and explicitly responds:
+    > *"The uploaded documents do not contain sufficient information to answer this question."*
+  - The chatbot **does not hallucinate or invent answers**.
 
 ---
 
 ## 15. Document Management & Explorer
 
 - **Live Statistics**: Real-time counters for indexed documents, total pages, and vector chunks.
-- **Per-Document Deletion**: Remove individual documents and their chunks from ChromaDB.
+- **Per-Document Deletion**: Remove individual documents and their chunks from ChromaDB with one click.
 - **Full Database Reset**: Erase the vector database with one click.
-- **Chunk Explorer**: Inspect all indexed chunks, page mappings, and execute raw semantic searches without invoking the LLM.
+- **Chunk Explorer**: Browse chunks by document with token counts, page numbers, and execute raw semantic searches without invoking the LLM.
 
 ---
 
-## 16. Screenshots Guide
+## 16. Screenshots Guide for Assignment Submission
 
-When submitting your assignment, capture the following screenshots:
+When submitting your assignment, capture the following **6 key screenshots** directly from your web browser (`http://localhost:8501` or `http://localhost:8502`):
 
-1. **Dashboard Overview**: The full Streamlit interface showing dark theme, header, and KPI metrics.
-2. **Document Ingestion**: Sidebar showing successful upload and indexing of a multi-page PDF (page count, chunk count).
-3. **Conversational RAG Chat**: Chat tab showing a multi-turn conversation with grounded answers and source badges (`📄 document.pdf (Page X)`).
-4. **Debug Expandable Context**: Expanded *"🔍 View Retrieved Context & Similarity Details"* displaying raw chunk excerpts and cosine similarity scores.
-5. **RAG vs Without RAG Comparison (Compulsory)**: Side-by-side comparison tab demonstrating direct LLM hallucination/vagueness vs grounded RAG precision with citations.
-6. **Document & Chunk Explorer**: Tab 3 showing the indexed documents table and raw semantic search results.
+1. **Dashboard Overview (UI Polish)**:
+   - *What to capture:* The full browser view of the application in dark mode.
+   - *Key elements:* Dark background with cyan/blue accents, KPI metric cards (**1 Indexed Document**, **39 Vector Chunks**, **all-MiniLM-L6-v2**, **gemini-2.5-flash**), and sidebar configuration.
+2. **Document Ingestion & Management**:
+   - *What to capture:* The sidebar with the document uploader and the *"📂 Manage Indexed Documents"* expander showing `retrieval_augmented_generation_research.pdf` (19 pages, 39 chunks).
+3. **Conversational RAG Chat with Citations**:
+   - *What to capture:* Tab 1 (**💬 RAG Chatbot**) showing an in-domain question answered with green citation badges (`📄 retrieval_augmented_generation_research.pdf (Page 3)`).
+4. **Debug Expandable Context**:
+   - *What to capture:* In Tab 1, expand the *"🔍 View Retrieved Context & Similarity Details"* dropdown under an assistant response to display the retrieved text excerpts and cosine similarity scores.
+5. **RAG vs Without RAG Comparison (Compulsory Requirement)**:
+   - *What to capture:* Tab 2 (**⚖️ RAG vs Without RAG Comparison**) showing the side-by-side columns:
+     - Left column: Red-bordered *"❌ Without RAG (Direct LLM)"* showing parametric answer.
+     - Right column: Teal-bordered *"✅ With RAG Pipeline"* showing grounded answer with exact figures and page citations.
+     - Lower section: The comparison analysis table.
+6. **Document & Chunk Explorer**:
+   - *What to capture:* Tab 3 (**📑 Document & Chunk Explorer**) showing the table of indexed files, the *"Browse Chunks by Document"* view, and the raw vector search tester.
 
 ---
 
@@ -303,3 +333,4 @@ When submitting your assignment, capture the following screenshots:
 ## 19. Conclusion
 
 This project demonstrates a production-grade, privacy-respecting RAG system. By grounding Google Gemini's reasoning capabilities within locally indexed ChromaDB vector representations, it eliminates hallucinations, provides verifiable citations, and enables conversational discovery over private documents.
+

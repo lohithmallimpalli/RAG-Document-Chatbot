@@ -187,7 +187,27 @@ with st.sidebar:
     )
 
     if api_key_input:
-        st.caption("🟢 API Key is configured")
+        st.caption("🟢 API Key is configured in session")
+        if not env_api_key:
+            if st.button("💾 Save key to .env for future sessions", use_container_width=True):
+                env_path = ".env"
+                lines = []
+                if os.path.exists(env_path):
+                    with open(env_path, "r") as f_env:
+                        lines = f_env.readlines()
+                new_lines = []
+                key_found = False
+                for line in lines:
+                    if line.startswith("GEMINI_API_KEY="):
+                        new_lines.append(f"GEMINI_API_KEY={api_key_input}\n")
+                        key_found = True
+                    else:
+                        new_lines.append(line)
+                if not key_found:
+                    new_lines.insert(0, f"GEMINI_API_KEY={api_key_input}\n")
+                with open(env_path, "w") as f_env:
+                    f_env.writelines(new_lines)
+                st.success("✅ Saved to .env safely (git-ignored)")
     else:
         st.warning("⚠️ Enter your Gemini API Key or set GEMINI_API_KEY in `.env`")
 
@@ -440,7 +460,20 @@ with tab_chat:
                     if label not in citations:
                         citations.append(label)
 
-                if citations:
+                is_unsupported = any(
+                    phrase in msg["content"].lower()
+                    for phrase in [
+                        "not contain sufficient information",
+                        "do not contain sufficient",
+                        "insufficient information",
+                        "not available in the provided context",
+                        "cannot be found in the context",
+                    ]
+                )
+
+                if is_unsupported:
+                    st.info("ℹ️ Uploaded documents were searched, but the requested information is not present in the document.")
+                elif citations:
                     citation_html = " ".join(
                         [f'<span class="citation-badge">{c}</span>' for c in citations]
                     )
@@ -501,7 +534,20 @@ with tab_chat:
                             if label not in citations:
                                 citations.append(label)
 
-                        if citations:
+                        is_unsupported = any(
+                            phrase in answer_text.lower()
+                            for phrase in [
+                                "not contain sufficient information",
+                                "do not contain sufficient",
+                                "insufficient information",
+                                "not available in the provided context",
+                                "cannot be found in the context",
+                            ]
+                        )
+
+                        if is_unsupported:
+                            st.info("ℹ️ Uploaded documents were searched, but the requested information is not present in the document.")
+                        elif citations:
                             citation_html = " ".join(
                                 [f'<span class="citation-badge">{c}</span>' for c in citations]
                             )
@@ -546,8 +592,19 @@ with tab_compare:
     """
     )
 
+    st.markdown("**💡 Suggested Assignment Test Questions:**")
+    sq_col1, sq_col2 = st.columns(2)
+    with sq_col1:
+        if st.button("📋 Sample 1: RAG-Sequence vs RAG-Token"):
+            st.session_state.comp_q_input = "What are the two formulations of RAG models and how do they differ in how they marginalize over documents?"
+    with sq_col2:
+        if st.button("📋 Sample 2: Table 4 Jeopardy Results"):
+            st.session_state.comp_q_input = "What are the human evaluation assessment percentages for the Jeopardy question generation task reported in Table 4?"
+
+    default_comp_q = st.session_state.get("comp_q_input", "")
     compare_question = st.text_input(
         "Enter a question based on a specific fact from your uploaded document:",
+        value=default_comp_q,
         placeholder="e.g. What were the specific quarterly metrics reported on page 5?",
     )
 
@@ -674,6 +731,37 @@ with tab_explorer:
         st.dataframe(doc_table, use_container_width=True)
 
         st.markdown("---")
+        st.markdown("#### 📖 Browse Chunks by Document")
+        if db_info.get("indexed_files"):
+            selected_browse_doc = st.selectbox(
+                "Select Document to Inspect:", db_info["indexed_files"], key="browse_doc_select"
+            )
+            if selected_browse_doc:
+                doc_chunks = st.session_state.vector_store.collection.get(
+                    where={"source": selected_browse_doc},
+                    include=["documents", "metadatas"],
+                )
+                total_doc_chunks = len(doc_chunks["ids"])
+                st.caption(f"Displaying chunks from `{selected_browse_doc}` (Total: {total_doc_chunks} chunks)")
+                start_c, end_c = st.slider(
+                    "Chunk Range to View",
+                    0,
+                    max(1, total_doc_chunks),
+                    (0, min(5, total_doc_chunks)),
+                    key="chunk_browse_slider",
+                )
+                for cid, doc_text, meta in zip(
+                    doc_chunks["ids"][start_c:end_c],
+                    doc_chunks["documents"][start_c:end_c],
+                    doc_chunks["metadatas"][start_c:end_c],
+                ):
+                    with st.expander(
+                        f"📄 Chunk {meta.get('chunk_index', 0)} | Page {meta.get('page', 1)} | ~{meta.get('token_count', 0)} tokens",
+                        expanded=False,
+                    ):
+                        st.code(doc_text, language=None)
+
+        st.markdown("---")
         st.markdown("#### 🔍 Test Semantic Retrieval (Without Calling LLM)")
         test_q = st.text_input(
             "Enter a search query to inspect raw vector similarity scores:",
@@ -697,3 +785,4 @@ with tab_explorer:
                         st.code(r["text"], language=None)
             else:
                 st.warning("Please enter a query first.")
+

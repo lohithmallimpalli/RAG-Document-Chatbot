@@ -32,7 +32,7 @@ An enterprise-grade, privacy-first Retrieval-Augmented Generation (RAG) Document
 
 Large Language Models (LLMs) possess vast general knowledge but cannot reliably answer questions about private, proprietary, or domain-specific documents. When queried about unseen documents, standard LLMs often **hallucinate** plausible yet incorrect facts.
 
-This project implements an end-to-end **Retrieval-Augmented Generation (RAG)** pipeline that enables users to upload multi-page PDF documents and interrogate them naturally. The system extracts text, chunks it semantically, creates dense vector representations using Sentence Transformers (`all-MiniLM-L6-v2`), indexes them locally in **ChromaDB**, and passes relevant excerpts to **Google Gemini** (`gemini-2.5-flash`) with a strict grounding prompt.
+This project implements an end-to-end **Retrieval-Augmented Generation (RAG)** pipeline that enables users to upload multi-page PDF documents and interrogate them naturally. The system extracts text, chunks it semantically, creates dense vector representations using Sentence Transformers (`all-MiniLM-L6-v2`), indexes them locally in **ChromaDB**, and passes relevant excerpts to **Google Gemini** (`gemini-3.8-flash`) with a strict grounding prompt.
 
 ---
 
@@ -64,7 +64,7 @@ Standard generative AI systems suffer from three fundamental problems when appli
 | **Frontend UI** | Streamlit | `>=1.35.0` | Dark-themed, responsive dashboard interface |
 | **Vector Database** | ChromaDB | `>=0.5.0` | Local persistent vector storage and cosine similarity search |
 | **Embedding Model** | Sentence Transformers | `all-MiniLM-L6-v2` | 384-dimensional dense semantic text embeddings |
-| **LLM Inference** | Google Gemini API | `google-genai` | Official Google GenAI SDK (`gemini-2.5-flash`) |
+| **LLM Inference** | Google Gemini API | `google-genai` | Official Google GenAI SDK (`gemini-3.8-flash`) |
 | **PDF Extraction** | PyPDF | `>=4.0.0` | Pure-Python PDF text extraction across multiple pages |
 | **Tokenization** | Tiktoken | `>=0.7.0` | Accurate token counting and overlap slicing |
 | **Configuration** | Python Dotenv | `>=1.0.0` | Environment variable management |
@@ -88,7 +88,7 @@ flowchart TD
         Q_EMBED --> RETRIEVE["ChromaDB Semantic Search\n(Cosine Similarity Top-K Chunks)"]
         CHROMA -.-> RETRIEVE
         RETRIEVE --> PROMPT["Context Assembly & Grounding Prompt\n(System Instruction + Citations)"]
-        PROMPT --> GEMINI["Google Gemini API\n(google-genai SDK: gemini-2.5-flash)"]
+        PROMPT --> GEMINI["Google Gemini API\n(google-genai SDK: gemini-3.8-flash)"]
         GEMINI --> ANSWER["Grounded Answer\n+ Source Filenames & Page Numbers"]
     end
 ```
@@ -151,7 +151,7 @@ Open `.env` and provide your Google Gemini API key:
 ```env
 # Google Gemini API Key (Get from https://aistudio.google.com/app/apikey)
 GEMINI_API_KEY=AIzaSy...your_real_key_here
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.8-flash
 
 # ChromaDB & Embedding Configuration
 CHROMA_PERSIST_DIRECTORY=./chroma_db
@@ -227,7 +227,7 @@ from google.genai import types
 
 client = genai.Client(api_key=api_key)
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     contents=prompt,
     config=types.GenerateContentConfig(
         system_instruction=SYSTEM_INSTRUCTION,
@@ -296,7 +296,7 @@ When submitting your assignment, capture the following **6 key screenshots** dir
 
 1. **Dashboard Overview (UI Polish)**:
    - *What to capture:* The full browser view of the application in dark mode.
-   - *Key elements:* Dark background with cyan/blue accents, KPI metric cards (**1 Indexed Document**, **39 Vector Chunks**, **all-MiniLM-L6-v2**, **gemini-2.5-flash**), and sidebar configuration.
+   - *Key elements:* Dark background with cyan/blue accents, KPI metric cards (**1 Indexed Document**, **39 Vector Chunks**, **all-MiniLM-L6-v2**, **gemini-3.8-flash**), and sidebar configuration.
 2. **Document Ingestion & Management**:
    - *What to capture:* The sidebar with the document uploader and the *"📂 Manage Indexed Documents"* expander showing `retrieval_augmented_generation_research.pdf` (19 pages, 39 chunks).
 3. **Conversational RAG Chat with Citations**:

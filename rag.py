@@ -31,7 +31,7 @@ from ingest import VectorStoreManager, get_vector_store
 
 load_dotenv()
 
-DEFAULT_GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+DEFAULT_GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 SYSTEM_INSTRUCTION = (
     "You are a document-based AI assistant. Answer questions using only the context "
     "retrieved from the user's uploaded documents. Do not invent information or make "
@@ -226,13 +226,33 @@ class RAGPipeline:
             except Exception as e:
                 last_error = e
                 err_str = str(e)
-                # Check for rate limit / 429
-                if "429" in err_str or "ResourceExhausted" in err_str or "quota" in err_str.lower():
-                    sleep_time = (attempt + 1) * 3
-                    print(f"Rate limited by Gemini API. Retrying in {sleep_time}s...")
+                # Check for rate limit / 429, 503 high demand, or transient service errors
+                is_transient = any(
+                    sig in err_str.lower()
+                    for sig in [
+                        "429",
+                        "resourceexhausted",
+                        "quota",
+                        "503",
+                        "unavailable",
+                        "high demand",
+                        "temporarily unavailable",
+                        "deadline exceeded",
+                        "timeout",
+                    ]
+                )
+                if is_transient and attempt < max_retries - 1:
+                    sleep_time = (attempt + 1) * 2
+                    print(
+                        f"Transient Gemini API status ({err_str[:60]}...). "
+                        f"Retrying attempt {attempt + 1}/{max_retries} in {sleep_time}s...",
+                        flush=True,
+                    )
                     time.sleep(sleep_time)
                     continue
                 else:
+                    # Non-retryable error or exhausted retries
+                    raise e
                     # Non-retryable error
                     raise e
 

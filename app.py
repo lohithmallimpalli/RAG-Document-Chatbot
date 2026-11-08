@@ -175,7 +175,7 @@ with st.sidebar:
         help="Get a free key from https://aistudio.google.com/app/apikey. If present in .env, it loads automatically.",
     )
 
-    available_models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+    available_models = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash", "gemini-3.1-flash-lite"]
     default_model = os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
     if default_model not in available_models:
         available_models.insert(0, default_model)

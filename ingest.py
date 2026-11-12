@@ -17,9 +17,7 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-# Enable offline loading for cached models to ensure fast, reliable local operation
-os.environ.setdefault("HF_HUB_OFFLINE", "1")
-os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
 
 import chromadb
 from chromadb.utils import embedding_functions

@@ -334,3 +334,11 @@ When submitting your assignment, capture the following **6 key screenshots** dir
 
 This project demonstrates a production-grade, privacy-respecting RAG system. By grounding Google Gemini's reasoning capabilities within locally indexed ChromaDB vector representations, it eliminates hallucinations, provides verifiable citations, and enables conversational discovery over private documents.
 
+## 20
+## 🚀 Live Demo
+
+Try the deployed application here:
+
+🔗 [RAG Document Chatbot](https://rag-documentchatbot.streamlit.app)
+
+
